@@ -12,6 +12,9 @@ class Graph:
     def addEdge( self, e ):
         self.edges.add( e )
 
+    def removeEdge(self, e):
+        self.edges.remove(e)
+
     def containsVertex( self, v ):
         return v in self.vertices
 
