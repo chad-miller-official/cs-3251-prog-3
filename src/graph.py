@@ -15,10 +15,17 @@ class Graph:
     def removeEdge(self, e):
         self.edges.remove(e)
 
+    def updateGraph(self, e):
+        for event in e:
+            edge = Edge(event.router1, event.router2, event.cost)
+            self.addEdge(edge)
+
     def containsVertex( self, v ):
         return v in self.vertices
 
-    def __str__( self ):
+    def __str__( self ):while self.queue and self.queue[0].roundNum == roundNum:
+            events.append( self.queue[0] )
+            self.queue = self.queue[1:]
         vStr = ''
 
         for vertex in self.vertices:
