@@ -1,9 +1,9 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import re, sys
 
 from event import Event, EventQueue
-from graph import Graph, Vertex, Edge
+from graph import Graph, Edge
 
 BASIC                        = 0
 SPLIT_HORIZON                = 1
@@ -23,10 +23,10 @@ def parse_initial_topology( filename ):
 
         edge = Edge( router1, router2, cost )
 
-        if not topology.containsVertex( v1 ):
+        if not topology.containsVertex( router1 ):
             topology.addVertex( router1, [ [ None for i in range( num_routers ) ] for j in range( num_routers ) ] )
 
-        if not topology.containsVertex( v2 ):
+        if not topology.containsVertex( router2 ):
             topology.addVertex( router2, [ [ None for i in range( num_routers ) ] for j in range( num_routers ) ] )
 
         topology.addEdge( edge )
@@ -52,19 +52,18 @@ def parse_topological_events( filename ):
     return event_queue
 
 def usage():
-    print 'Usage: ./simulator.py <topology file> <event file> <verbose value>'
+    print( 'Usage: ./simulator.py <topology file> <event file> <verbose value>' )
     exit( 0 )
 
 def dv_run( network, events, verbose, algoType ):
-    changed  = False
+    changed  = True
     roundNum = 0
 
     while changed and events.hasEvents():
-        roundEvents = events.getEvents( roundNum )
+        print( 'Round ' + str( roundNum ) + '\n' + str( network ) + '\n' )
 
-        for roundEvent in roundEvents:
-            # TODO
-            pass
+        roundEvents = events.getEvents( roundNum )
+        network.updateGraph( roundEvents )
 
         if algoType == BASIC:
             # TODO

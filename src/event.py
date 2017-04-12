@@ -1,3 +1,5 @@
+import functools
+
 class EventQueue:
     def __init__( self ):
         self.queue = []
@@ -8,7 +10,7 @@ class EventQueue:
     def prepare( self ):
         self.queue = sorted(
             self.queue,
-            cmp=lambda x, y: cmp( x.roundNum, y.roundNum )
+            key=functools.cmp_to_key( lambda x, y: ( x.roundNum > y.roundNum ) - ( x.roundNum < y.roundNum ) )
         )
 
     def getEvents( self, roundNum ):

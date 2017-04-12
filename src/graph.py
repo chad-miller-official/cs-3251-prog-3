@@ -14,6 +14,7 @@ class Graph:
 
     def updateGraph(self, e):
         for event in e:
+            print( 'Event: ' + str( event ) )
             edge = Edge(event.router1, event.router2, event.cost)
             self.addEdge(edge)
 
@@ -23,9 +24,7 @@ class Graph:
     def getVertexData( self, v ):
         return self.vertices[v]
 
-    def __str__( self ):while self.queue and self.queue[0].roundNum == roundNum:
-            events.append( self.queue[0] )
-            self.queue = self.queue[1:]
+    def __str__( self ):
         vStr = ''
 
         for vertex in self.vertices.keys():
@@ -62,4 +61,4 @@ class Edge:
         return True
 
     def __str__( self ):
-        return '([' + str( self.cost ) + '] ' + str( self.v1.label ) + ', ' + str( self.v2.label ) + ')'
+        return '([' + str( self.cost ) + '] ' + str( self.v1 ) + ', ' + str( self.v2 ) + ')'
