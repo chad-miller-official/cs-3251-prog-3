@@ -21,15 +21,13 @@ def parse_initial_topology( filename ):
         router2 = int( match.group( 2 ) )
         cost    = int( match.group( 3 ) )
 
-        v1 = Vertex( router1, [ [ None for i in range( num_routers ) ] for j in range( num_routers ) ] )
-        v2 = Vertex( router2, [ [ None for i in range( num_routers ) ] for j in range( num_routers ) ] )
-        edge = Edge( v1, v2, cost )
+        edge = Edge( router1, router2, cost )
 
         if not topology.containsVertex( v1 ):
-            topology.addVertex( v1 )
+            topology.addVertex( router1, [ [ None for i in range( num_routers ) ] for j in range( num_routers ) ] )
 
         if not topology.containsVertex( v2 ):
-            topology.addVertex( v2 )
+            topology.addVertex( router2, [ [ None for i in range( num_routers ) ] for j in range( num_routers ) ] )
 
         topology.addEdge( edge )
 
