@@ -14,7 +14,10 @@ class RoutingTable:
 
         for i in range( 0, len( self.table ) ):
             for j in range( 0, len( self.table[i] ) ):
-                tableStr += self.table[i][j] + ', '
+                if self.table[i][j] is None:
+                    tableStr += 'X, '
+                else:
+                    tableStr += str(self.table[i][j]) + ', '
 
             tableStr = tableStr.strip( ', ' )
             tableStr += '\n'

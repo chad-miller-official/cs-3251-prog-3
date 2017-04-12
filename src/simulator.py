@@ -89,6 +89,7 @@ def setup_network( network, verbose, algoType ):
         for x in vertexNeighbors.keys():
             network.vertices[vertex].setCost( vertex, x, vertexNeighbors[x] )
             network.vertices[vertex].setCoordinate(x, x)
+        print('Routing Table:' + str(network.vertices[vertex]))
 
 def iter_basic( network, verbose ):
     # TODO
@@ -111,7 +112,6 @@ def dv_run( network, events, verbose, algoType ):
     while changed and events.hasEvents():
         changed = False
         print( 'Round ' + str( roundNum ) + '\n' + str( network ) + '\n' )
-
         roundEvents = events.getEvents( roundNum )
         #network.updateGraph( roundEvents, algoType != BASIC )
 
