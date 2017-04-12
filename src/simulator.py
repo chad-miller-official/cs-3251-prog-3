@@ -77,6 +77,8 @@ def dv_run( network, events, verbose, algoType ):
 
         roundNum += 1
 
+    print( 'Round ' + str( roundNum ) + '\n' + str( network ) + '\n' )
+
 def main( argv ):
     if len( argv ) != 3:
         usage()

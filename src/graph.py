@@ -16,7 +16,11 @@ class Graph:
         for event in e:
             print( 'Event: ' + str( event ) )
             edge = Edge(event.router1, event.router2, event.cost)
+
             if (event.cost >= 0):
+                if edge in self.edges:
+                    self.edges.remove( edge )
+
                 self.addEdge(edge)
             else:
                 self.removeEdge(edge)
@@ -55,13 +59,18 @@ class Edge:
         return hashCode
 
     def __eq__( self, other ):
-        if self.v1 != other.v1:
+        if self.v1 == other.v1:
+            if self.v2 == other.v2:
+                return True
+            else:
+                return False
+        elif self.v1 == other.v2:
+            if self.v2 == other.v1:
+                return True
+            else:
+                return False
+        else:
             return False
-
-        if self.v2 != other.v2:
-            return False
-
-        return True
 
     def __str__( self ):
         return '([' + str( self.cost ) + '] ' + str( self.v1 ) + ', ' + str( self.v2 ) + ')'
