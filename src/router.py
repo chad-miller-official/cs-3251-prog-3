@@ -5,3 +5,6 @@ class RoutingTable:
 
     def setCost( self, to, via, cost ):
         self.table[to - 1][via - 1] = cost
+
+    def setCoordinate(self, index1, index2):
+        self.coordinates[index1] = (index1, index2)
