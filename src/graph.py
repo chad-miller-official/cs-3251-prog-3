@@ -9,11 +9,11 @@ class Graph:
         for edge in e:
             self.edges.add( e )
 
-    def addEdge( self, v1, v2, cost ):
-        self.edges.add( Edge( v1, v2, cost ) )
+    def addEdge( self, e ):
+        self.edges.add( e )
 
-    def removeEdge( self, v1, v2 ):
-        self.edges.remove( Edge( v1, v2 ) )
+    def containsVertex( self, v ):
+        return v in self.vertices
 
     def __str__( self ):
         vStr = ''
@@ -38,23 +38,19 @@ class Vertex:
     def __hash__( self ):
         hashCode = 1
         hashCode = 31 * hash( self.label )
-        hashCode = 31 * hash( self.data )
         return hashCode
 
     def __eq__( self, other ):
         if self.label != other.label:
             return False
 
-        if self.data != other.data:
-            return False
-
         return True
 
     def __str__( self ):
-        return '(' + self.label + ': ' + str( self.data ) + ')'
+        return '(' + str( self.label ) + ': ' + str( self.data ) + ')'
 
 class Edge:
-    def __init__( self, v1, v2, cost=None ):
+    def __init__( self, v1, v2, cost ):
         self.v1   = v1
         self.v2   = v2
         self.cost = cost
@@ -63,7 +59,6 @@ class Edge:
         hashCode = 1
         hashCode = 31 * hash( self.v1 )
         hashCode = 31 * hash( self.v2 )
-        hashCode = 31 * hash( self.cost )
         return hashCode
 
     def __eq__( self, other ):
@@ -76,4 +71,4 @@ class Edge:
         return True
 
     def __str__( self ):
-        return '([' + str( self.cost ) + '] ' + self.v1.label + ', ' + self.v2.label + ')'
+        return '([' + str( self.cost ) + '] ' + str( self.v1.label ) + ', ' + str( self.v2.label ) + ')'
