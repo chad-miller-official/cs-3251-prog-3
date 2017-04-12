@@ -9,7 +9,7 @@ BASIC                        = 0
 SPLIT_HORIZON                = 1
 SPLIT_HORIZON_POISON_REVERSE = 2
 
-def parse_initial_topology( filename ):
+def file_to_undirected_graph( filename ):
     handle      = open( filename, 'r' )
     num_routers = int( handle.readline() )
 
@@ -33,7 +33,33 @@ def parse_initial_topology( filename ):
 
     return topology
 
-def parse_topological_events( filename ):
+def file_to_directed_graph( filename ):
+    handle      = open( filename, 'r' )
+    num_routers = int( handle.readline() )
+
+    topology = Graph()
+
+    for line in handle:
+        match   = re.match( r'(\d+)\s+(\d+)\s+(\d+)', line )
+        router1 = int( match.group( 1 ) )
+        router2 = int( match.group( 2 ) )
+        cost    = int( match.group( 3 ) )
+
+        edge1 = Edge( router1, router2, cost )
+        edge2 = Edge( router2, router1, cost )
+
+        if not topology.containsVertex( router1 ):
+            topology.addVertex( router1, [ [ None for i in range( num_routers ) ] for j in range( num_routers ) ] )
+
+        if not topology.containsVertex( router2 ):
+            topology.addVertex( router2, [ [ None for i in range( num_routers ) ] for j in range( num_routers ) ] )
+
+        topology.addEdge( edge1 )
+        topology.addEdge( edge2 )
+
+    return topology
+
+def file_to_topological_events( filename ):
     handle = open( filename, 'r' )
 
     event_queue = EventQueue()
@@ -63,7 +89,7 @@ def dv_run( network, events, verbose, algoType ):
         print( 'Round ' + str( roundNum ) + '\n' + str( network ) + '\n' )
 
         roundEvents = events.getEvents( roundNum )
-        network.updateGraph( roundEvents )
+        network.updateGraph( roundEvents, algoType != BASIC )
 
         if algoType == BASIC:
             # TODO
@@ -83,12 +109,23 @@ def main( argv ):
     if len( argv ) != 3:
         usage()
 
-    topology           = parse_initial_topology( argv[0] )
-    topological_events = parse_topological_events( argv[1] )
-    verbose            = int( argv[2] ) == 1
+    topology_filename           = argv[0]
+    topological_events_filename = argv[1]
+    verbose                     = int( argv[2] ) == 1
 
+    print( 'Variation 1: Basic algorithm' )
+    topology           = file_to_undirected_graph( topology_filename )
+    topological_events = file_to_topological_events( topological_events_filename )
     dv_run( topology, topological_events, verbose, BASIC )
+
+    print( 'Variation 2: Algorithm with split horizon' )
+    topology           = file_to_directed_graph( topology_filename )
+    topological_events = file_to_topological_events( topological_events_filename )
     dv_run( topology, topological_events, verbose, SPLIT_HORIZON )
+
+    print( 'Variation 3: Algorithm with split horizon and poison reverse' )
+    topology           = file_to_directed_graph( topology_filename )
+    topological_events = file_to_topological_events( topological_events_filename )
     dv_run( topology, topological_events, verbose, SPLIT_HORIZON_POISON_REVERSE )
 
 if __name__ == "__main__":
