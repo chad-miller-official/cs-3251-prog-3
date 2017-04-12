@@ -16,7 +16,10 @@ class Graph:
         for event in e:
             print( 'Event: ' + str( event ) )
             edge = Edge(event.router1, event.router2, event.cost)
-            self.addEdge(edge)
+            if (event.cost >= 0):
+                self.addEdge(edge)
+            else:
+                self.removeEdge(edge)
 
     def containsVertex( self, v ):
         return v in self.vertices.keys()
