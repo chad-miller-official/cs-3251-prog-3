@@ -17,12 +17,12 @@ class RoutingTable:
                 if self.table[i][j] is None:
                     tableStr += 'X, '
                 else:
-                    tableStr += str(self.table[i][j]) + ', '
+                    tableStr += str( self.table[i][j] ) + ', '
 
             tableStr = tableStr.strip( ', ' )
             tableStr += '\n'
 
-        tableStr  = tableStr.strip( ', ' )
+        tableStr  = tableStr.strip( ', \n' )
         tableStr += ']'
 
         return tableStr

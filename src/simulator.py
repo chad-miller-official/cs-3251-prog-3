@@ -84,12 +84,12 @@ def usage():
 
 def setup_network( network, verbose, algoType ):
     for vertex in network.vertices:
-        vertexNeighbors = network.getNeighbors( vertex, algoType != BASIC )
+        vertexNeighbors = network.getNeighbors( vertex, algoType == BASIC )
 
         for x in vertexNeighbors.keys():
             network.vertices[vertex].setCost( x, x, vertexNeighbors[x] )
             network.vertices[vertex].setCoordinate(x, x)
-        print('Routing Table:' + str(network.vertices[vertex]))
+        print('Routing Table:\n' + str(network.vertices[vertex]))
         print(str(network.vertices[vertex].coordinates))
         print(str(network.vertices[vertex].table))
 
