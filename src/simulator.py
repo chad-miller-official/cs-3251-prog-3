@@ -81,25 +81,40 @@ def usage():
     print( 'Usage: ./simulator.py <topology file> <event file> <verbose value>' )
     exit( 0 )
 
+def setup_network( network, verbose ):
+    for vertex in network.vertexes:
+        vertexNeighbors = network.getNeighbors( vertex )
+
+def iter_basic( network, verbose ):
+    # TODO
+    return True
+
+def iter_split_horizon( network, verbose ):
+    # TODO
+    return True
+
+def iter_split_horizon_poison_reverse( network, verbose ):
+    # TODO
+    return True
+
 def dv_run( network, events, verbose, algoType ):
-    changed  = True
-    roundNum = 0
+    changed  = False
+    roundNum = 1
+
+    setup_network( network, verbose )
 
     while changed and events.hasEvents():
         print( 'Round ' + str( roundNum ) + '\n' + str( network ) + '\n' )
 
         roundEvents = events.getEvents( roundNum )
-        network.updateGraph( roundEvents, algoType != BASIC )
+        #network.updateGraph( roundEvents, algoType != BASIC )
 
         if algoType == BASIC:
-            # TODO
-            pass
+            changed = iter_basic( network, verbose )
         elif algoType == SPLIT_HORIZON:
-            # TODO
-            pass
+            changed = iter_split_horizon( network, verbose )
         elif algoType == SPLIT_HORIZON_POISON_REVERSE:
-            # TODO
-            pass
+            changed = iter_split_horizon_poison_reverse( network, verbose )
 
         roundNum += 1
 
@@ -118,15 +133,15 @@ def main( argv ):
     topological_events = file_to_topological_events( topological_events_filename )
     dv_run( topology, topological_events, verbose, BASIC )
 
-    print( 'Variation 2: Algorithm with split horizon' )
-    topology           = file_to_directed_graph( topology_filename )
-    topological_events = file_to_topological_events( topological_events_filename )
-    dv_run( topology, topological_events, verbose, SPLIT_HORIZON )
+    #print( 'Variation 2: Algorithm with split horizon' )
+    #topology           = file_to_directed_graph( topology_filename )
+    #topological_events = file_to_topological_events( topological_events_filename )
+    #dv_run( topology, topological_events, verbose, SPLIT_HORIZON )
 
-    print( 'Variation 3: Algorithm with split horizon and poison reverse' )
-    topology           = file_to_directed_graph( topology_filename )
-    topological_events = file_to_topological_events( topological_events_filename )
-    dv_run( topology, topological_events, verbose, SPLIT_HORIZON_POISON_REVERSE )
+    #print( 'Variation 3: Algorithm with split horizon and poison reverse' )
+    #topology           = file_to_directed_graph( topology_filename )
+    #topological_events = file_to_topological_events( topological_events_filename )
+    #dv_run( topology, topological_events, verbose, SPLIT_HORIZON_POISON_REVERSE )
 
 if __name__ == "__main__":
     main( sys.argv[1:] )

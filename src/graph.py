@@ -45,6 +45,17 @@ class Graph:
     def getVertexData( self, v ):
         return self.vertices[v]
 
+    def getNeighbors( self, v ):
+        neighbors = set()
+
+        for edge in self.edges:
+            if edge.v1 == v:
+                neighbors.add( edge.v2 )
+            elif edge.v2 == v:
+                neighbors.add( edge.v1 )
+
+        return neighbors
+
     def __str__( self ):
         vStr = ''
 
