@@ -20,6 +20,9 @@ class EventQueue:
 
         return events
 
+    def hasEvents( self ):
+        return len( self.queue ) > 0
+
     def __str__( self ):
         return str( self.queue )
 
