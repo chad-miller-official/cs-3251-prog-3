@@ -45,14 +45,14 @@ class Graph:
     def getVertexData( self, v ):
         return self.vertices[v]
 
-    def getNeighbors( self, v ):
-        neighbors = set()
+    def getNeighbors( self, v, directed ):
+        neighbors = {}
 
         for edge in self.edges:
             if edge.v1 == v:
-                neighbors.add( edge.v2 )
-            elif edge.v2 == v:
-                neighbors.add( edge.v1 )
+                neighbors[edge.v2] = edge.cost
+            elif directed and edge.v2 == v:
+                neighbors[edge.v1] = edge.cost
 
         return neighbors
 

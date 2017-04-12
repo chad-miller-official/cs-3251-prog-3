@@ -4,6 +4,7 @@ import re, sys
 
 from event import Event, EventQueue
 from graph import Graph, Edge
+from router import RoutingTable
 
 BASIC                        = 0
 SPLIT_HORIZON                = 1
@@ -24,10 +25,10 @@ def file_to_undirected_graph( filename ):
         edge = Edge( router1, router2, cost )
 
         if not topology.containsVertex( router1 ):
-            topology.addVertex( router1, [ [ None for i in range( num_routers ) ] for j in range( num_routers ) ] )
+            topology.addVertex( router1, RoutingTable( num_routers ) )
 
         if not topology.containsVertex( router2 ):
-            topology.addVertex( router2, [ [ None for i in range( num_routers ) ] for j in range( num_routers ) ] )
+            topology.addVertex( router2, RoutingTable( num_routers ) )
 
         topology.addEdge( edge )
 
@@ -49,10 +50,10 @@ def file_to_directed_graph( filename ):
         edge2 = Edge( router2, router1, cost )
 
         if not topology.containsVertex( router1 ):
-            topology.addVertex( router1, [ [ None for i in range( num_routers ) ] for j in range( num_routers ) ] )
+            topology.addVertex( router1, RoutingTable( num_routers ) )
 
         if not topology.containsVertex( router2 ):
-            topology.addVertex( router2, [ [ None for i in range( num_routers ) ] for j in range( num_routers ) ] )
+            topology.addVertex( router2, RoutingTable( num_routers ) )
 
         topology.addEdge( edge1 )
         topology.addEdge( edge2 )
@@ -81,9 +82,9 @@ def usage():
     print( 'Usage: ./simulator.py <topology file> <event file> <verbose value>' )
     exit( 0 )
 
-def setup_network( network, verbose ):
+def setup_network( network, verbose, algoType ):
     for vertex in network.vertexes:
-        vertexNeighbors = network.getNeighbors( vertex )
+        vertexNeighbors = network.getNeighbors( vertex, algoType != BASIC )
 
 def iter_basic( network, verbose ):
     # TODO
