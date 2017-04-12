@@ -81,9 +81,10 @@ def usage():
     print( 'Usage: ./simulator.py <topology file> <event file> <verbose value>' )
     exit( 0 )
 
-def setup_network( network, verbose ):
-    for vertex in network.vertexes:
-        vertexNeighbors = network.getNeighbors( vertex )
+def setup_network( network, verbose, algoType ):
+    for vertex in network.vertices:
+        vertexNeighbors = network.getNeighbors( vertex, algoType != BASIC )
+
         for x in vertexNeighbors.keys:
             network.vertices[vertex].setCost(vertexNeighbors[x])
             network.vertices[vertex].setCoordinate(x, x)
@@ -104,7 +105,7 @@ def dv_run( network, events, verbose, algoType ):
     changed  = True
     roundNum = 1
 
-    setup_network( network, verbose )
+    setup_network( network, verbose, algoType )
 
     while changed and events.hasEvents():
         changed = False
