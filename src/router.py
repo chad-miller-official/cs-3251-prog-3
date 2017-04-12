@@ -1,13 +1,13 @@
 class RoutingTable:
-    def __init__( self, numRouters, coordinates=[] ):
+    def __init__( self, numRouters ):
         self.table       = [ [ None for i in range( numRouters ) ] for j in range( numRouters ) ]
-        self.coordinates = coordinates
+        self.coordinates = [ None for i in range( numRouters ) ]
 
     def setCost( self, to, via, cost ):
         self.table[to - 1][via - 1] = cost
 
     def setCoordinate(self, index1, index2):
-        self.coordinates[index1] = (index1, index2)
+        self.coordinates[index1 - 1] = (index1, index2)
 
     def __str__( self ):
         tableStr = '['
