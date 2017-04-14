@@ -10,6 +10,8 @@ BASIC                        = 0
 SPLIT_HORIZON                = 1
 SPLIT_HORIZON_POISON_REVERSE = 2
 
+updates = {}
+
 def file_to_undirected_graph( filename ):
     handle      = open( filename, 'r' )
     num_routers = int( handle.readline() )
@@ -31,6 +33,8 @@ def file_to_undirected_graph( filename ):
             topology.addVertex( router2, RoutingTable( num_routers, router2 ) )
 
         topology.addEdge( edge )
+        updates[router1] = True
+        updates[router2] = True
 
     return topology
 
@@ -57,6 +61,8 @@ def file_to_directed_graph( filename ):
 
         topology.addEdge( edge1 )
         topology.addEdge( edge2 )
+        updates[router1] = True
+        updates[router2] = True
 
     return topology
 
@@ -105,6 +111,9 @@ def iter_basic( network, verbose ):
         cloned[vertex] = network.vertices[vertex].clone()
 
     for vertex in network.vertices:
+        if not updates[vertex]:
+            continue
+
         vertex_neighbors = network.getNeighbors( vertex, False )
 
         for neighbor in vertex_neighbors.keys():
@@ -128,6 +137,9 @@ def iter_basic( network, verbose ):
 
                         if not changed and didChange:
                             changed = True
+                            
+    for vertex in network.vertices:
+        updates[vertex] = network.vertices[vertex].updateCoordinates()
 
     return changed
 

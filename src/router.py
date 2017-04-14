@@ -22,6 +22,17 @@ class RoutingTable:
     def setCoordinate(self, index1, index2):
         self.coordinates[index1 - 1] = (index1, index2)
 
+    def updateCoordinates( self ):
+        ret = False
+        for c in range( 0, len( self.table ) ):
+            if not any( self.table[c] ):
+                continue
+            col = self.table[c].index( min ( x for x in self.table[c] if x is not None ) )
+            if self.coordinates[c] != (c + 1, col + 1):
+                self.coordinates[c] = (c + 1, col + 1)
+                ret = True
+        return ret
+
     def clone( self ):
         return deepcopy( self )
 
