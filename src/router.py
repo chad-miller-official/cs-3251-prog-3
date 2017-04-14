@@ -13,7 +13,7 @@ class RoutingTable:
         if to == self.router or via == self.router:
             return False
 
-        if self.table[to - 1][via - 1] != cost:
+        if self.table[to-1][via-1] is None or self.table[to - 1][via - 1] >= cost:
             self.table[to - 1][via - 1] = cost
             return True
 
