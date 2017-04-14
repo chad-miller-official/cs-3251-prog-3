@@ -51,10 +51,18 @@ class Graph:
         for edge in self.edges:
             if edge.v1 == v:
                 neighbors[edge.v2] = edge.cost
-            elif directed and edge.v2 == v:
+            elif not directed and edge.v2 == v:
                 neighbors[edge.v1] = edge.cost
 
         return neighbors
+
+    def getEdgeCost( self, v1, v2, directed ):
+        for edge in self.edges:
+            if    ( edge.v1 == v1 and edge.v2 == v2 ) \
+               or ( not directed and edge.v1 == v2 and edge.v2 == v1 ):
+                return edge.cost
+
+        return None
 
     def __str__( self ):
         vStr = ''

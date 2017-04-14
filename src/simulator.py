@@ -25,10 +25,10 @@ def file_to_undirected_graph( filename ):
         edge = Edge( router1, router2, cost )
 
         if not topology.containsVertex( router1 ):
-            topology.addVertex( router1, RoutingTable( num_routers ) )
+            topology.addVertex( router1, RoutingTable( num_routers, router1 ) )
 
         if not topology.containsVertex( router2 ):
-            topology.addVertex( router2, RoutingTable( num_routers ) )
+            topology.addVertex( router2, RoutingTable( num_routers, router2 ) )
 
         topology.addEdge( edge )
 
@@ -50,10 +50,10 @@ def file_to_directed_graph( filename ):
         edge2 = Edge( router2, router1, cost )
 
         if not topology.containsVertex( router1 ):
-            topology.addVertex( router1, RoutingTable( num_routers ) )
+            topology.addVertex( router1, RoutingTable( num_routers, router1 ) )
 
         if not topology.containsVertex( router2 ):
-            topology.addVertex( router2, RoutingTable( num_routers ) )
+            topology.addVertex( router2, RoutingTable( num_routers, router2 ) )
 
         topology.addEdge( edge1 )
         topology.addEdge( edge2 )
@@ -82,20 +82,54 @@ def usage():
     print( 'Usage: ./simulator.py <topology file> <event file> <verbose value>' )
     exit( 0 )
 
+def print_network( network ):
+    for vertex in network.vertices:
+        print( 'Router ' + str( vertex ) + ':' )
+        print( str( network.vertices[vertex] ) )
+        print( str( network.vertices[vertex].coordinates ) )
+        print( '\n' )
+
 def setup_network( network, verbose, algoType ):
     for vertex in network.vertices:
-        vertexNeighbors = network.getNeighbors( vertex, algoType == BASIC )
+        vertexNeighbors = network.getNeighbors( vertex, algoType != BASIC )
 
         for x in vertexNeighbors.keys():
             network.vertices[vertex].setCost( x, x, vertexNeighbors[x] )
             network.vertices[vertex].setCoordinate(x, x)
-        print('Routing Table:\n' + str(network.vertices[vertex]))
-        print(str(network.vertices[vertex].coordinates))
-        print(str(network.vertices[vertex].table))
 
 def iter_basic( network, verbose ):
-    # TODO
-    return True
+    changed = False
+    cloned  = {}
+
+    for vertex in network.vertices:
+        cloned[vertex] = network.vertices[vertex].clone()
+
+    for vertex in network.vertices:
+        vertex_neighbors = network.getNeighbors( vertex, False )
+
+        for neighbor in vertex_neighbors.keys():
+            for to in range( 0, len( network.vertices[vertex].table ) ):
+                to_router = to + 1
+
+                if to_router == vertex:
+                    continue
+
+                for via in range( 0, len( network.vertices[vertex].table[to] ) ):
+                    via_router = via + 1
+
+                    if via_router == vertex:
+                        continue
+
+                    existing_cost = cloned[vertex].getCost( to_router, via_router )
+
+                    if existing_cost is not None:
+                        new_cost  = existing_cost + network.vertices[neighbor].getCost( vertex, vertex )
+                        didChange = network.vertices[neighbor].setCost( to_router, vertex, new_cost )
+
+                        if not changed and didChange:
+                            changed = True
+
+    return changed
 
 def iter_split_horizon( network, verbose ):
     # TODO
@@ -109,13 +143,16 @@ def dv_run( network, events, verbose, algoType ):
     changed  = True
     roundNum = 1
 
-    setup_network( network, verbose, algoType )
+    print( '\n\n~~~ t=0 ~~~\n\n' )
 
-    while changed and events.hasEvents():
-        changed = False
-        print( 'Round ' + str( roundNum ) + '\n' + str( network ) + '\n' )
+    setup_network( network, verbose, algoType )
+    print_network( network )
+
+    while changed or events.hasEvents():
+        print( '\n\n~~~ t=' + str( roundNum ) + ' ~~~\n\n' )
+
         roundEvents = events.getEvents( roundNum )
-        #network.updateGraph( roundEvents, algoType != BASIC )
+        network.updateGraph( roundEvents, algoType != BASIC )
 
         if algoType == BASIC:
             changed = iter_basic( network, verbose )
@@ -124,9 +161,9 @@ def dv_run( network, events, verbose, algoType ):
         elif algoType == SPLIT_HORIZON_POISON_REVERSE:
             changed = iter_split_horizon_poison_reverse( network, verbose )
 
-        roundNum += 1
+        print_network( network )
 
-    print( 'Round ' + str( roundNum ) + '\n' + str( network ) + '\n' )
+        roundNum += 1
 
 def main( argv ):
     if len( argv ) != 3:
