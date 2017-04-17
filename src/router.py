@@ -5,7 +5,7 @@ class RoutingTable:
         self.table       = [ [ None for i in range( numRouters ) ] for j in range( numRouters ) ]
         self.coordinates = [ None for i in range( numRouters ) ]
         self.router      = router
-        self.hops        = [ [ -1 for i in range( numRouters ) ] for j in range( numRouters ) ]
+        self.hops        = [ None for i in range( numRouters ) ]
 
     def getCost( self, to, via ):
         return self.table[to - 1][via - 1]
@@ -15,14 +15,19 @@ class RoutingTable:
             return False
 
         if self.table[to-1][via-1] is None or self.table[to - 1][via - 1] >= cost:
+            self.setHop(to, via, via)
             self.table[to - 1][via - 1] = cost
             return True
 
         return False
 
-    def setHop( self, to, via, next ):
+    def setHop( self, to, via, hop ):
         if to == self.router or via == self.router:
-            selh.hops[to-1][via-1] = 0
+            self.hops[to-1] = 0
+        elif to == via:
+            self.hops[to-1] = 0
+        else:
+            self.hops[to-1] = hop
 
     def setCoordinate(self, index1, index2):
         self.coordinates[index1 - 1] = (index1, index2)
