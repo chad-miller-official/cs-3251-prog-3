@@ -137,7 +137,7 @@ def iter_basic( network, verbose ):
 
                         if not changed and didChange:
                             changed = True
-                            
+
     for vertex in network.vertices:
         updates[vertex] = network.vertices[vertex].updateCoordinates()
 
@@ -155,13 +155,13 @@ def dv_run( network, events, verbose, algoType ):
     changed  = True
     roundNum = 1
 
-    print( '\n\n~~~ t=0 ~~~\n\n' )
+    print( '\nRound: 0' )
 
     setup_network( network, verbose, algoType )
     print_network( network )
 
     while changed or events.hasEvents():
-        print( '\n\n~~~ t=' + str( roundNum ) + ' ~~~\n\n' )
+        print( '\nRound: ' + str( roundNum ))
 
         roundEvents = events.getEvents( roundNum )
         network.updateGraph( roundEvents, algoType != BASIC )
@@ -176,6 +176,7 @@ def dv_run( network, events, verbose, algoType ):
         print_network( network )
 
         roundNum += 1
+    print( 'Convergence Delay: ' + str( roundNum - 1))
 
 def main( argv ):
     if len( argv ) != 3:
