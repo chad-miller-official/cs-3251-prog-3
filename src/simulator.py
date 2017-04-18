@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import re, sys
+import math, re, sys
 
 from event import Event, EventQueue
 from graph import Graph, Edge
@@ -228,14 +228,58 @@ def iter_split_horizon( network, verbose ):
     return changed
 
 def iter_split_horizon_poison_reverse( network, verbose ):
-    # TODO
-    return False
+    global updates
+
+    changed = False
+    cloned  = {}
+
+    for vertex in network.vertices:
+        cloned[vertex] = network.vertices[vertex].clone()
+
+    for vertex in network.vertices:
+        if not updates[vertex]:
+            continue
+
+        vertex_neighbors = network.getNeighbors( vertex, False )
+
+        for neighbor in vertex_neighbors.keys():
+            for to in range( 0, len( network.vertices[vertex].table ) ):
+                to_router = to + 1
+
+                if to_router == vertex:
+                    continue
+
+                for via in range( 0, len( network.vertices[vertex].table[to] ) ):
+                    via_router = via + 1
+
+                    if via_router == vertex:
+                        continue
+
+                    existing_cost = cloned[vertex].getCost( to_router, via_router )
+
+                    if existing_cost is not None:
+                        additional_cost = network.vertices[neighbor].getCost( vertex, vertex )
+
+                        if network.vertices[vertex].hops[to] != neighbor:
+                            new_cost = existing_cost + additional_cost
+                        else:
+                            new_cost = math.inf
+
+                        didChange = network.vertices[neighbor].setCost( to_router, vertex, new_cost )
+
+                        if not changed and didChange:
+                            changed = True
+
+    for vertex in network.vertices:
+        updates[vertex] = network.vertices[vertex].updateCoordinates()
+
+    return changed
 
 def dv_run( network, events, verbose, algoType ):
     changed  = True
     roundNum = 1
 
-    setup_network( network, verbose, algoType != BASIC and algoType != SPLIT_HORIZON )
+    setup_network( network, verbose, False )
 
     if verbose:
         print( 'Round: 0' )
@@ -257,6 +301,7 @@ def dv_run( network, events, verbose, algoType ):
 
         if verbose:
             pretty_print( network )
+            # print_network( network )
 
         roundNum += 1
 
@@ -289,10 +334,12 @@ def main( argv ):
     topological_events = file_to_topological_events( topological_events_filename )
     dv_run( topology, topological_events, verbose, SPLIT_HORIZON )
 
-    #print( 'Variation 3: Algorithm with split horizon and poison reverse\n' )
-    #topology           = file_to_directed_graph( topology_filename )
-    #topological_events = file_to_topological_events( topological_events_filename )
-    #dv_run( topology, topological_events, verbose, SPLIT_HORIZON_POISON_REVERSE )
+    print( '\n*********************\n' )
+
+    print( 'Variation 3: Algorithm with split horizon and poison reverse\n' )
+    topology           = file_to_undirected_graph( topology_filename )
+    topological_events = file_to_topological_events( topological_events_filename )
+    dv_run( topology, topological_events, verbose, SPLIT_HORIZON_POISON_REVERSE )
 
 if __name__ == "__main__":
     main( sys.argv[1:] )
