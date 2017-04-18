@@ -13,6 +13,8 @@ SPLIT_HORIZON_POISON_REVERSE = 2
 updates = {}
 
 def file_to_undirected_graph( filename ):
+    global num_routers
+
     handle      = open( filename, 'r' )
     num_routers = int( handle.readline() )
 
@@ -95,6 +97,38 @@ def print_network( network ):
         print( str( network.vertices[vertex].coordinates ) )
         print( '\n' )
 
+def pretty_print( network ):
+    global num_routers
+
+    str_2d_array = [ [ None for i in range( num_routers ) ] for j in range( num_routers ) ]
+
+    for router in range( 0, num_routers ):
+        routing_table = network.vertices[router + 1]
+
+        for i in range( 0, len( routing_table.coordinates ) ):
+            if i == router:
+                next_hop = 0
+                cost     = 0
+            elif routing_table.coordinates[i] is None:
+                next_hop = -1
+                cost     = -1
+            else:
+                x, y     = routing_table.coordinates[i]
+                next_hop = routing_table.hops[i]
+                cost     = routing_table.table[x - 1][y - 1]
+
+            str_2d_array[router][i] = '{},{}'.format( next_hop, cost )
+
+    s = [ [ str( e ) for e in row ] for row in str_2d_array ]
+    s.insert( 0, [ str( i ) for i in range( 1, num_routers + 1 ) ] )
+
+    lens  = [ max( map( len, col ) ) for col in zip( *s ) ]
+    fmt   = '  '.join( '{{:^{}}}'.format( x ) for x in lens )
+    table = [ fmt.format( *row ) for row in s ]
+
+    for i in range( 0, len( table ) ):
+        print( '{}  '.format( ' ' if i == 0 else i ) + table[i] )
+
 def setup_network( network, verbose, algoType ):
     for vertex in network.vertices:
         vertexNeighbors = network.getNeighbors( vertex, algoType != BASIC )
@@ -155,13 +189,15 @@ def dv_run( network, events, verbose, algoType ):
     changed  = True
     roundNum = 1
 
-    print( '\nRound: 0' )
-
     setup_network( network, verbose, algoType )
-    print_network( network )
+
+    if verbose:
+        print( 'Round: 0' )
+        pretty_print( network )
 
     while changed or events.hasEvents():
-        print( '\nRound: ' + str( roundNum ))
+        if verbose:
+            print( '\nRound: ' + str( roundNum ))
 
         roundEvents = events.getEvents( roundNum )
         network.updateGraph( roundEvents, algoType != BASIC )
@@ -173,10 +209,15 @@ def dv_run( network, events, verbose, algoType ):
         elif algoType == SPLIT_HORIZON_POISON_REVERSE:
             changed = iter_split_horizon_poison_reverse( network, verbose )
 
-        print_network( network )
+        if verbose:
+            pretty_print( network )
 
         roundNum += 1
-    print( 'Convergence Delay: ' + str( roundNum - 1))
+
+    if not verbose:
+        pretty_print( network )
+
+    print( '\nConvergence Delay: ' + str( roundNum - 1 ) )
 
 def main( argv ):
     if len( argv ) != 3:
@@ -186,17 +227,17 @@ def main( argv ):
     topological_events_filename = argv[1]
     verbose                     = int( argv[2] ) == 1
 
-    print( 'Variation 1: Basic algorithm' )
+    print( 'Variation 1: Basic algorithm\n' )
     topology           = file_to_undirected_graph( topology_filename )
     topological_events = file_to_topological_events( topological_events_filename )
     dv_run( topology, topological_events, verbose, BASIC )
 
-    #print( 'Variation 2: Algorithm with split horizon' )
+    #print( 'Variation 2: Algorithm with split horizon\n' )
     #topology           = file_to_directed_graph( topology_filename )
     #topological_events = file_to_topological_events( topological_events_filename )
     #dv_run( topology, topological_events, verbose, SPLIT_HORIZON )
 
-    #print( 'Variation 3: Algorithm with split horizon and poison reverse' )
+    #print( 'Variation 3: Algorithm with split horizon and poison reverse\n' )
     #topology           = file_to_directed_graph( topology_filename )
     #topological_events = file_to_topological_events( topological_events_filename )
     #dv_run( topology, topological_events, verbose, SPLIT_HORIZON_POISON_REVERSE )

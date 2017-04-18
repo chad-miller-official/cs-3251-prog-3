@@ -15,19 +15,18 @@ class RoutingTable:
             return False
 
         if self.table[to-1][via-1] is None or self.table[to - 1][via - 1] >= cost:
-            self.setHop(to, via, via)
             self.table[to - 1][via - 1] = cost
             return True
 
         return False
 
-    def setHop( self, to, via, hop ):
+    def setHop( self, to, via ):
         if to == self.router or via == self.router:
             self.hops[to-1] = 0
         elif to == via:
             self.hops[to-1] = 0
         else:
-            self.hops[to-1] = hop
+            self.hops[to-1] = via
 
     def setCoordinate(self, index1, index2):
         self.coordinates[index1 - 1] = (index1, index2)
@@ -37,10 +36,14 @@ class RoutingTable:
         for c in range( 0, len( self.table ) ):
             if not any( self.table[c] ):
                 continue
-            col = self.table[c].index( min ( x for x in self.table[c] if x is not None ) )
+
+            col = self.table[c].index( min( x for x in self.table[c] if x is not None ) )
+            self.setHop( c + 1, col + 1 )
+
             if self.coordinates[c] != (c + 1, col + 1):
                 self.coordinates[c] = (c + 1, col + 1)
                 ret = True
+
         return ret
 
     def clone( self ):
