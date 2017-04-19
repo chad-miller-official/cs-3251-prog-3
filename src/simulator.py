@@ -90,7 +90,7 @@ def tableize( network, on_round_0=False ):
 def is_count_to_infinity( table ):
     for i in table:
         for j in i:
-            if j[1] >= 100:
+            if j[1] >= 100 and j[1] != math.inf:
                 return True
 
     return False
