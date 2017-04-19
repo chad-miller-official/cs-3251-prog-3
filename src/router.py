@@ -21,6 +21,8 @@ class RoutingTable:
         elif self.table[to - 1][via - 1] is None or self.table[to - 1][via - 1] >= cost:
             self.table[to - 1][via - 1] = cost
             return True
+        else:
+            print( 'setCost(): not an event and existing cost {} less than new cost {}.'.format( self.table[to - 1][via - 1], cost ) )
 
         return False
 

@@ -94,7 +94,7 @@ def print_network( network ):
     for vertex in network.vertices:
         print( 'Router ' + str( vertex ) + ':' )
         print( str( network.vertices[vertex] ) )
-        print( str( network.vertices[vertex].coordinates ) )
+        # print( str( network.vertices[vertex].coordinates ) )
         print( '\n' )
 
 def pretty_print( network, on_round_0=False ):
@@ -274,36 +274,51 @@ def update_network( network, events ):
         r2   = e.router2
         cost = e.cost
 
-        for vertex in network.vertices:
-            if cost >= 0:
-                if vertex == r1:
-                    network.vertices[vertex].setCost( r2, r2, cost, True )
-                elif vertex == r2:
-                    network.vertices[vertex].setCost( r1, r1, cost, True )
-                else:
-                    old_r1_r2_cost = network.vertices[vertex].getCost( r1, r2 )
-                    old_r2_r1_cost = network.vertices[vertex].getCost( r2, r1 )
+        network.vertices[r1].setCost( r2, r2, cost, True )
+        network.vertices[r2].setCost( r1, r1, cost, True )
 
-                    if old_r1_r2_cost is not None:
-                        network.vertices[vertex].setCost( r1, r2, cost + network.vertices[vertex].getCost( r2, r2 ), True )
+        updates[r1] = True
+        updates[r2] = True
 
-                    if old_r2_r1_cost is not None:
-                        network.vertices[vertex].setCost( r2, r1, cost + network.vertices[vertex].getCost( r1, r1 ), True )
-            else:
-                network.vertices[r1].setCost( r2, r2, None, True )
-                network.vertices[r2].setCost( r1, r1, None, True )
+        r1_neighbors = network.getNeighbors( r1, False )
+        r2_neighbors = network.getNeighbors( r2, False )
 
-            updates[vertex] = True
+        for neighbor in r1_neighbors.keys():
+            if neighbor == r2:
+                continue
 
-        #if cost >= 0:
-        #    network.vertices[r1].setCost( r2, r2, cost, True )
-        #    network.vertices[r2].setCost( r1, r1, cost, True )
-        #else:
-        #    network.vertices[r1].setCost( r2, r2, None, True )
-        #    network.vertices[r2].setCost( r1, r1, None, True )
+            neighbor_r2_cost = network.getEdgeCost( neighbor, r2, False )
+            neighbor_r1_cost = network.getEdgeCost( neighbor, r1, False )
 
-        #updates[r1] = True
-        #updates[r2] = True
+            if neighbor_r2_cost is not None:
+                print( '{}: to {} via {} -> {}'.format( neighbor, r1, r2, cost + neighbor_r2_cost ) )
+                network.vertices[neighbor].setCost( r1, r2, cost + neighbor_r2_cost, True )
+                updates[neighbor] = True
+
+            if neighbor_r1_cost is not None:
+                print( '{}: to {} via {} -> {}'.format( neighbor, r2, r1, cost + neighbor_r1_cost ) )
+                network.vertices[neighbor].setCost( r2, r1, cost + neighbor_r1_cost, True )
+                updates[neighbor] = True
+
+        for neighbor in r2_neighbors.keys():
+            if neighbor == r1:
+                continue
+
+            neighbor_r2_cost = network.getEdgeCost( neighbor, r2, False )
+            neighbor_r1_cost = network.getEdgeCost( neighbor, r1, False )
+
+            if neighbor_r2_cost is not None:
+                print( '{}: to {} via {} -> {}'.format( neighbor, r1, r2, cost + neighbor_r2_cost ) )
+                network.vertices[neighbor].setCost( r1, r2, cost + neighbor_r2_cost, True )
+                updates[neighbor] = True
+
+            if neighbor_r1_cost is not None:
+                print( '{}: to {} via {} -> {}'.format( neighbor, r2, r1, cost + neighbor_r1_cost ) )
+                network.vertices[neighbor].setCost( r2, r1, cost + neighbor_r1_cost, True )
+                updates[neighbor] = True
+
+    print( '\n' )
+    print_network( network )
 
 def dv_run( network, events, verbose, algoType ):
     global updates
