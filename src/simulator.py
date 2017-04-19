@@ -144,6 +144,9 @@ def iter_basic( network ):
                         new_cost  = existing_cost + network.vertices[neighbor].getCost( vertex, vertex )
                         didChange = network.vertices[neighbor].setCost( to_router, vertex, new_cost )
 
+                        if didChange:
+                            updates[neighbor] = True
+
                         if not changed and didChange:
                             changed = True
 
@@ -185,6 +188,9 @@ def iter_split_horizon( network ):
                         if network.vertices[vertex].hops[to] != neighbor:
                             new_cost  = existing_cost + additional_cost
                             didChange = network.vertices[neighbor].setCost( to_router, vertex, new_cost )
+
+                            if didChange:
+                                updates[neighbor] = True
 
                             if not changed and didChange:
                                 changed = True
@@ -231,6 +237,9 @@ def iter_split_horizon_poison_reverse( network ):
 
                         didChange = network.vertices[neighbor].setCost( to_router, vertex, new_cost )
 
+                        if didChange:
+                            updates[neighbor] = True
+
                         if not changed and didChange:
                             changed = True
 
@@ -239,13 +248,15 @@ def iter_split_horizon_poison_reverse( network ):
 def update_network( network, events ):
     global updates
 
+    network.updateGraph( events )
+
     for e in events:
         r1   = e.router1
         r2   = e.router2
         cost = e.cost
 
-        network.vertices[r1].setCost( r2, r2, cost )
-        network.vertices[r2].setCost( r1, r1, cost )
+        network.vertices[r1].setCostFromEvent( r2, r2, cost )
+        network.vertices[r2].setCostFromEvent( r1, r1, cost )
 
         updates[r1] = True
         updates[r2] = True
@@ -262,12 +273,12 @@ def update_network( network, events ):
 
             if neighbor_r2_cost is not None:
                 print( '{}: to {} via {} -> {}'.format( neighbor, r1, r2, cost + neighbor_r2_cost ) )
-                network.vertices[neighbor].setCost( r1, r2, cost + neighbor_r2_cost )
+                network.vertices[neighbor].setCostFromEvent( r1, r2, cost + neighbor_r2_cost )
                 updates[neighbor] = True
 
             if neighbor_r1_cost is not None:
                 print( '{}: to {} via {} -> {}'.format( neighbor, r2, r1, cost + neighbor_r1_cost ) )
-                network.vertices[neighbor].setCost( r2, r1, cost + neighbor_r1_cost )
+                network.vertices[neighbor].setCostFromEvent( r2, r1, cost + neighbor_r1_cost )
                 updates[neighbor] = True
 
         for neighbor in r2_neighbors.keys():
@@ -279,12 +290,12 @@ def update_network( network, events ):
 
             if neighbor_r2_cost is not None:
                 print( '{}: to {} via {} -> {}'.format( neighbor, r1, r2, cost + neighbor_r2_cost ) )
-                network.vertices[neighbor].setCost( r1, r2, cost + neighbor_r2_cost )
+                network.vertices[neighbor].setCostFromEvent( r1, r2, cost + neighbor_r2_cost )
                 updates[neighbor] = True
 
             if neighbor_r1_cost is not None:
                 print( '{}: to {} via {} -> {}'.format( neighbor, r2, r1, cost + neighbor_r1_cost ) )
-                network.vertices[neighbor].setCost( r2, r1, cost + neighbor_r1_cost )
+                network.vertices[neighbor].setCostFromEvent( r2, r1, cost + neighbor_r1_cost )
                 updates[neighbor] = True
 
     print( '\n' )
@@ -310,7 +321,6 @@ def dv_run( network, events, verbose, algoType ):
         round_events = events.getEvents( round_num )
 
         if len( round_events ) > 0:
-            network.updateGraph( round_events )
             update_network( network, round_events )
             last_event_time = round_num
 

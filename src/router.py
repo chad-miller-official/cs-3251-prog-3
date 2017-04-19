@@ -11,6 +11,9 @@ class RoutingTable:
     def getCost( self, to, via ):
         return self.table[to - 1][via - 1]
 
+    def setCostFromEvent( self, to, via, cost ):
+        self.table[to - 1][via - 1] = cost
+
     def setCost( self, to, via, cost ):
         if to == self.router or via == self.router:
             return False
@@ -18,8 +21,6 @@ class RoutingTable:
         if self.table[to - 1][via - 1] is None or self.table[to - 1][via - 1] >= cost:
             self.table[to - 1][via - 1] = cost
             return True
-        else:
-            print( 'setCost(): existing cost {} less than new cost {}.'.format( self.table[to - 1][via - 1], cost ) )
 
         return False
 
