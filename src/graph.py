@@ -14,7 +14,7 @@ class Graph:
 
     def updateGraph(self, e, directed):
         for event in e:
-            print( 'Event: ' + str( event ) )
+            print( 'EVENT OCCURRED: ' + str( event ) )
 
             if directed:
                 edge1 = Edge( event.router1, event.router2, event.cost )

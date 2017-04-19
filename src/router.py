@@ -11,11 +11,14 @@ class RoutingTable:
     def getCost( self, to, via ):
         return self.table[to - 1][via - 1]
 
-    def setCost( self, to, via, cost ):
+    def setCost( self, to, via, cost, isEvent=False ):
         if to == self.router or via == self.router:
             return False
 
-        if self.table[to-1][via-1] is None or self.table[to - 1][via - 1] >= cost:
+        if isEvent:
+            self.table[to - 1][via - 1] = cost
+            return True
+        elif self.table[to - 1][via - 1] is None or self.table[to - 1][via - 1] >= cost:
             self.table[to - 1][via - 1] = cost
             return True
 
@@ -34,6 +37,7 @@ class RoutingTable:
 
     def updateCoordinates( self ):
         ret = False
+
         for c in range( 0, len( self.table ) ):
             if not any( self.table[c] ):
                 continue

@@ -140,7 +140,7 @@ def setup_network( network, verbose, directed ):
             network.vertices[vertex].setCost( x, x, vertexNeighbors[x] )
             network.vertices[vertex].setCoordinate(x, x)
 
-def iter_basic( network, verbose ):
+def iter_basic( network, verbose, first_round_after_event=False ):
     global updates
 
     changed = False
@@ -172,17 +172,14 @@ def iter_basic( network, verbose ):
 
                     if existing_cost is not None:
                         new_cost  = existing_cost + network.vertices[neighbor].getCost( vertex, vertex )
-                        didChange = network.vertices[neighbor].setCost( to_router, vertex, new_cost )
+                        didChange = network.vertices[neighbor].setCost( to_router, vertex, new_cost, first_round_after_event )
 
                         if not changed and didChange:
                             changed = True
 
-    for vertex in network.vertices:
-        updates[vertex] = network.vertices[vertex].updateCoordinates()
-
     return changed
 
-def iter_split_horizon( network, verbose ):
+def iter_split_horizon( network, verbose, first_round_after_event=False ):
     global updates
 
     changed = False
@@ -217,17 +214,14 @@ def iter_split_horizon( network, verbose ):
 
                         if network.vertices[vertex].hops[to] != neighbor:
                             new_cost  = existing_cost + additional_cost
-                            didChange = network.vertices[neighbor].setCost( to_router, vertex, new_cost )
+                            didChange = network.vertices[neighbor].setCost( to_router, vertex, new_cost, first_round_after_event )
 
                             if not changed and didChange:
                                 changed = True
 
-    for vertex in network.vertices:
-        updates[vertex] = network.vertices[vertex].updateCoordinates()
-
     return changed
 
-def iter_split_horizon_poison_reverse( network, verbose ):
+def iter_split_horizon_poison_reverse( network, verbose, first_round_after_event=False ):
     global updates
 
     changed = False
@@ -265,19 +259,58 @@ def iter_split_horizon_poison_reverse( network, verbose ):
                         else:
                             new_cost = math.inf
 
-                        didChange = network.vertices[neighbor].setCost( to_router, vertex, new_cost )
+                        didChange = network.vertices[neighbor].setCost( to_router, vertex, new_cost, first_round_after_event )
 
                         if not changed and didChange:
                             changed = True
 
-    for vertex in network.vertices:
-        updates[vertex] = network.vertices[vertex].updateCoordinates()
-
     return changed
 
+def update_network( network, events ):
+    global updates
+
+    for e in events:
+        r1   = e.router1
+        r2   = e.router2
+        cost = e.cost
+
+        for vertex in network.vertices:
+            if cost >= 0:
+                if vertex == r1:
+                    network.vertices[vertex].setCost( r2, r2, cost, True )
+                elif vertex == r2:
+                    network.vertices[vertex].setCost( r1, r1, cost, True )
+                else:
+                    old_r1_r2_cost = network.vertices[vertex].getCost( r1, r2 )
+                    old_r2_r1_cost = network.vertices[vertex].getCost( r2, r1 )
+
+                    if old_r1_r2_cost is not None:
+                        network.vertices[vertex].setCost( r1, r2, cost + network.vertices[vertex].getCost( r2, r2 ), True )
+
+                    if old_r2_r1_cost is not None:
+                        network.vertices[vertex].setCost( r2, r1, cost + network.vertices[vertex].getCost( r1, r1 ), True )
+            else:
+                network.vertices[r1].setCost( r2, r2, None, True )
+                network.vertices[r2].setCost( r1, r1, None, True )
+
+            updates[vertex] = True
+
+        #if cost >= 0:
+        #    network.vertices[r1].setCost( r2, r2, cost, True )
+        #    network.vertices[r2].setCost( r1, r1, cost, True )
+        #else:
+        #    network.vertices[r1].setCost( r2, r2, None, True )
+        #    network.vertices[r2].setCost( r1, r1, None, True )
+
+        #updates[r1] = True
+        #updates[r2] = True
+
 def dv_run( network, events, verbose, algoType ):
-    changed  = True
-    roundNum = 1
+    global updates
+
+    changed         = True
+    round_num       = 1
+    last_event_time = 0
 
     setup_network( network, verbose, False )
 
@@ -287,28 +320,39 @@ def dv_run( network, events, verbose, algoType ):
 
     while changed or events.hasEvents():
         if verbose:
-            print( '\nRound: ' + str( roundNum ) )
+            print( '\nRound: ' + str( round_num ) )
 
-        roundEvents = events.getEvents( roundNum )
-        network.updateGraph( roundEvents, algoType != BASIC )
+        round_events   = events.getEvents( round_num )
+        event_happened = False
+
+        if len( round_events ) > 0:
+            network.updateGraph( round_events, algoType != BASIC )
+            update_network( network, round_events )
+            event_happened  = True
+            last_event_time = round_num
 
         if algoType == BASIC:
-            changed = iter_basic( network, verbose )
+            changed = iter_basic( network, verbose, event_happened )
         elif algoType == SPLIT_HORIZON:
-            changed = iter_split_horizon( network, verbose )
+            changed = iter_split_horizon( network, verbose, event_happened )
         elif algoType == SPLIT_HORIZON_POISON_REVERSE:
-            changed = iter_split_horizon_poison_reverse( network, verbose )
+            changed = iter_split_horizon_poison_reverse( network, verbose, event_happened )
+
+        if not event_happened:
+            for vertex in network.vertices:
+                updates[vertex] = network.vertices[vertex].updateCoordinates()
 
         if verbose:
             pretty_print( network )
-            # print_network( network )
+            print( '\n' )
+            print_network( network )
 
-        roundNum += 1
+        round_num += 1
 
     if not verbose:
         pretty_print( network )
 
-    print( '\nConvergence Delay: ' + str( roundNum - 1 ) )
+    print( '\nConvergence Delay: ' + str( round_num - 1 - last_event_time ) )
 
 def main( argv ):
     global updates
