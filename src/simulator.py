@@ -60,17 +60,10 @@ def usage():
     print( 'Usage: ./simulator.py <topology file> <event file> <verbose value>' )
     exit( 0 )
 
-def print_network( network ):
-    for vertex in network.vertices:
-        print( 'Router ' + str( vertex ) + ':' )
-        print( str( network.vertices[vertex] ) )
-        print( str( network.vertices[vertex].coordinates ) )
-        print( '\n' )
-
-def pretty_print( network, on_round_0=False ):
+def tableize( network, on_round_0=False ):
     global num_routers
 
-    str_2d_array = [ [ None for i in range( num_routers ) ] for j in range( num_routers ) ]
+    ret_table = [ [ None for i in range( num_routers ) ] for j in range( num_routers ) ]
 
     for router in range( 0, num_routers ):
         routing_table = network.vertices[router + 1]
@@ -88,11 +81,31 @@ def pretty_print( network, on_round_0=False ):
                 cost     = routing_table.table[x - 1][y - 1]
 
             if on_round_0:
-                str_2d_array[router][i] = '{},{}'.format( next_hop or 0, cost )
+                ret_table[router][i] = ( next_hop or 0, cost )
             else:
-                str_2d_array[router][i] = '{},{}'.format( next_hop, cost )
+                ret_table[router][i] = ( next_hop, cost )
 
-    s = [ [ str( e ) for e in row ] for row in str_2d_array ]
+    return ret_table
+
+def is_count_to_infinity( table ):
+    for i in table:
+        for j in i:
+            if j[1] >= 100:
+                return True
+
+    return False
+
+def print_network( network ):
+    for vertex in network.vertices:
+        print( 'Router ' + str( vertex ) + ':' )
+        print( str( network.vertices[vertex] ) )
+        print( str( network.vertices[vertex].coordinates ) )
+        print( '\n' )
+
+def pretty_print( table ):
+    global num_routers
+
+    s = [ [ '{},{}'.format( e[0], e[1] ) for e in row ] for row in table ]
     s.insert( 0, [ str( i ) for i in range( 1, num_routers + 1 ) ] )
 
     lens  = [ max( map( len, col ) ) for col in zip( *s ) ]
@@ -312,7 +325,8 @@ def dv_run( network, events, verbose, algoType ):
 
     if verbose:
         print( 'Round: 0' )
-        pretty_print( network, True )
+        table = tableize( network, True )
+        pretty_print( table )
 
     while changed or events.hasEvents():
         if verbose:
@@ -335,14 +349,19 @@ def dv_run( network, events, verbose, algoType ):
             updates[vertex] = network.vertices[vertex].updateCoordinates()
 
         if verbose:
-            pretty_print( network )
+            table = tableize( network )
+            pretty_print( table )
             print( '\n' )
             print_network( network )
+
+            if is_count_to_infinity( table ):
+                sys.exit( 'Encountered a count-to-infinity instability.' )
 
         round_num += 1
 
     if not verbose:
-        pretty_print( network )
+        table = tableize( network )
+        pretty_print( table )
 
     print( '\nConvergence Delay: ' + str( round_num - 1 - last_event_time ) )
 
