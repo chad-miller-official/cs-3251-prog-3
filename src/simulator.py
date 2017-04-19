@@ -38,36 +38,6 @@ def file_to_undirected_graph( filename ):
 
     return topology
 
-def file_to_directed_graph( filename ):
-    global num_routers, updates
-
-    handle      = open( filename, 'r' )
-    num_routers = int( handle.readline() )
-
-    topology = Graph()
-
-    for line in handle:
-        match   = re.match( r'(\d+)\s+(\d+)\s+(\d+)', line )
-        router1 = int( match.group( 1 ) )
-        router2 = int( match.group( 2 ) )
-        cost    = int( match.group( 3 ) )
-
-        edge1 = Edge( router1, router2, cost )
-        edge2 = Edge( router2, router1, cost )
-
-        if not topology.containsVertex( router1 ):
-            topology.addVertex( router1, RoutingTable( num_routers, router1 ) )
-
-        if not topology.containsVertex( router2 ):
-            topology.addVertex( router2, RoutingTable( num_routers, router2 ) )
-
-        topology.addEdge( edge1 )
-        topology.addEdge( edge2 )
-        updates[router1] = True
-        updates[router2] = True
-
-    return topology
-
 def file_to_topological_events( filename ):
     handle = open( filename, 'r' )
 
@@ -94,7 +64,7 @@ def print_network( network ):
     for vertex in network.vertices:
         print( 'Router ' + str( vertex ) + ':' )
         print( str( network.vertices[vertex] ) )
-        # print( str( network.vertices[vertex].coordinates ) )
+        print( str( network.vertices[vertex].coordinates ) )
         print( '\n' )
 
 def pretty_print( network, on_round_0=False ):
@@ -132,15 +102,15 @@ def pretty_print( network, on_round_0=False ):
     for i in range( 0, len( table ) ):
         print( '{}  '.format( ' ' if i == 0 else i ) + table[i] )
 
-def setup_network( network, verbose, directed ):
+def setup_network( network, verbose ):
     for vertex in network.vertices:
-        vertexNeighbors = network.getNeighbors( vertex, directed )
+        vertexNeighbors = network.getNeighbors( vertex )
 
         for x in vertexNeighbors.keys():
             network.vertices[vertex].setCost( x, x, vertexNeighbors[x] )
             network.vertices[vertex].setCoordinate(x, x)
 
-def iter_basic( network, verbose, first_round_after_event=False ):
+def iter_basic( network ):
     global updates
 
     changed = False
@@ -153,7 +123,7 @@ def iter_basic( network, verbose, first_round_after_event=False ):
         if not updates[vertex]:
             continue
 
-        vertex_neighbors = network.getNeighbors( vertex, False )
+        vertex_neighbors = network.getNeighbors( vertex )
 
         for neighbor in vertex_neighbors.keys():
             for to in range( 0, len( network.vertices[vertex].table ) ):
@@ -172,14 +142,14 @@ def iter_basic( network, verbose, first_round_after_event=False ):
 
                     if existing_cost is not None:
                         new_cost  = existing_cost + network.vertices[neighbor].getCost( vertex, vertex )
-                        didChange = network.vertices[neighbor].setCost( to_router, vertex, new_cost, first_round_after_event )
+                        didChange = network.vertices[neighbor].setCost( to_router, vertex, new_cost )
 
                         if not changed and didChange:
                             changed = True
 
     return changed
 
-def iter_split_horizon( network, verbose, first_round_after_event=False ):
+def iter_split_horizon( network ):
     global updates
 
     changed = False
@@ -192,7 +162,7 @@ def iter_split_horizon( network, verbose, first_round_after_event=False ):
         if not updates[vertex]:
             continue
 
-        vertex_neighbors = network.getNeighbors( vertex, False )
+        vertex_neighbors = network.getNeighbors( vertex )
 
         for neighbor in vertex_neighbors.keys():
             for to in range( 0, len( network.vertices[vertex].table ) ):
@@ -214,14 +184,14 @@ def iter_split_horizon( network, verbose, first_round_after_event=False ):
 
                         if network.vertices[vertex].hops[to] != neighbor:
                             new_cost  = existing_cost + additional_cost
-                            didChange = network.vertices[neighbor].setCost( to_router, vertex, new_cost, first_round_after_event )
+                            didChange = network.vertices[neighbor].setCost( to_router, vertex, new_cost )
 
                             if not changed and didChange:
                                 changed = True
 
     return changed
 
-def iter_split_horizon_poison_reverse( network, verbose, first_round_after_event=False ):
+def iter_split_horizon_poison_reverse( network ):
     global updates
 
     changed = False
@@ -234,7 +204,7 @@ def iter_split_horizon_poison_reverse( network, verbose, first_round_after_event
         if not updates[vertex]:
             continue
 
-        vertex_neighbors = network.getNeighbors( vertex, False )
+        vertex_neighbors = network.getNeighbors( vertex )
 
         for neighbor in vertex_neighbors.keys():
             for to in range( 0, len( network.vertices[vertex].table ) ):
@@ -259,7 +229,7 @@ def iter_split_horizon_poison_reverse( network, verbose, first_round_after_event
                         else:
                             new_cost = math.inf
 
-                        didChange = network.vertices[neighbor].setCost( to_router, vertex, new_cost, first_round_after_event )
+                        didChange = network.vertices[neighbor].setCost( to_router, vertex, new_cost )
 
                         if not changed and didChange:
                             changed = True
@@ -274,47 +244,47 @@ def update_network( network, events ):
         r2   = e.router2
         cost = e.cost
 
-        network.vertices[r1].setCost( r2, r2, cost, True )
-        network.vertices[r2].setCost( r1, r1, cost, True )
+        network.vertices[r1].setCost( r2, r2, cost )
+        network.vertices[r2].setCost( r1, r1, cost )
 
         updates[r1] = True
         updates[r2] = True
 
-        r1_neighbors = network.getNeighbors( r1, False )
-        r2_neighbors = network.getNeighbors( r2, False )
+        r1_neighbors = network.getNeighbors( r1 )
+        r2_neighbors = network.getNeighbors( r2 )
 
         for neighbor in r1_neighbors.keys():
             if neighbor == r2:
                 continue
 
-            neighbor_r2_cost = network.getEdgeCost( neighbor, r2, False )
-            neighbor_r1_cost = network.getEdgeCost( neighbor, r1, False )
+            neighbor_r2_cost = network.getEdgeCost( neighbor, r2 )
+            neighbor_r1_cost = network.getEdgeCost( neighbor, r1 )
 
             if neighbor_r2_cost is not None:
                 print( '{}: to {} via {} -> {}'.format( neighbor, r1, r2, cost + neighbor_r2_cost ) )
-                network.vertices[neighbor].setCost( r1, r2, cost + neighbor_r2_cost, True )
+                network.vertices[neighbor].setCost( r1, r2, cost + neighbor_r2_cost )
                 updates[neighbor] = True
 
             if neighbor_r1_cost is not None:
                 print( '{}: to {} via {} -> {}'.format( neighbor, r2, r1, cost + neighbor_r1_cost ) )
-                network.vertices[neighbor].setCost( r2, r1, cost + neighbor_r1_cost, True )
+                network.vertices[neighbor].setCost( r2, r1, cost + neighbor_r1_cost )
                 updates[neighbor] = True
 
         for neighbor in r2_neighbors.keys():
             if neighbor == r1:
                 continue
 
-            neighbor_r2_cost = network.getEdgeCost( neighbor, r2, False )
-            neighbor_r1_cost = network.getEdgeCost( neighbor, r1, False )
+            neighbor_r2_cost = network.getEdgeCost( neighbor, r2 )
+            neighbor_r1_cost = network.getEdgeCost( neighbor, r1 )
 
             if neighbor_r2_cost is not None:
                 print( '{}: to {} via {} -> {}'.format( neighbor, r1, r2, cost + neighbor_r2_cost ) )
-                network.vertices[neighbor].setCost( r1, r2, cost + neighbor_r2_cost, True )
+                network.vertices[neighbor].setCost( r1, r2, cost + neighbor_r2_cost )
                 updates[neighbor] = True
 
             if neighbor_r1_cost is not None:
                 print( '{}: to {} via {} -> {}'.format( neighbor, r2, r1, cost + neighbor_r1_cost ) )
-                network.vertices[neighbor].setCost( r2, r1, cost + neighbor_r1_cost, True )
+                network.vertices[neighbor].setCost( r2, r1, cost + neighbor_r1_cost )
                 updates[neighbor] = True
 
     print( '\n' )
@@ -327,7 +297,7 @@ def dv_run( network, events, verbose, algoType ):
     round_num       = 1
     last_event_time = 0
 
-    setup_network( network, verbose, False )
+    setup_network( network, verbose )
 
     if verbose:
         print( 'Round: 0' )
@@ -337,25 +307,22 @@ def dv_run( network, events, verbose, algoType ):
         if verbose:
             print( '\nRound: ' + str( round_num ) )
 
-        round_events   = events.getEvents( round_num )
-        event_happened = False
+        round_events = events.getEvents( round_num )
 
         if len( round_events ) > 0:
-            network.updateGraph( round_events, algoType != BASIC )
+            network.updateGraph( round_events )
             update_network( network, round_events )
-            event_happened  = True
             last_event_time = round_num
 
         if algoType == BASIC:
-            changed = iter_basic( network, verbose, event_happened )
+            changed = iter_basic( network )
         elif algoType == SPLIT_HORIZON:
-            changed = iter_split_horizon( network, verbose, event_happened )
+            changed = iter_split_horizon( network )
         elif algoType == SPLIT_HORIZON_POISON_REVERSE:
-            changed = iter_split_horizon_poison_reverse( network, verbose, event_happened )
+            changed = iter_split_horizon_poison_reverse( network )
 
-        if not event_happened:
-            for vertex in network.vertices:
-                updates[vertex] = network.vertices[vertex].updateCoordinates()
+        for vertex in network.vertices:
+            updates[vertex] = network.vertices[vertex].updateCoordinates()
 
         if verbose:
             pretty_print( network )

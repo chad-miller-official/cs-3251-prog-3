@@ -12,32 +12,18 @@ class Graph:
     def removeEdge( self, e ):
         self.edges.remove( e )
 
-    def updateGraph(self, e, directed):
+    def updateGraph(self, e):
         for event in e:
             print( 'EVENT OCCURRED: ' + str( event ) )
+            edge = Edge(event.router1, event.router2, event.cost)
 
-            if directed:
-                edge1 = Edge( event.router1, event.router2, event.cost )
-                edge2 = Edge( event.router2, event.router1, event.cost )
+            if event.cost >= 0:
+                if edge in self.edges:
+                    self.edges.remove( edge )
 
-                if event.cost >= 0:
-                    if edge1 in self.edges:
-                        self.edges.remove( edge1 )
-                    if edge2 in self.edges:
-                        self.edges.remove( edge2 )
-
-                    self.addEdge( edge1 )
-                    self.addEdge( edge2 )
+                self.addEdge(edge)
             else:
-                edge = Edge(event.router1, event.router2, event.cost)
-
-                if event.cost >= 0:
-                    if edge in self.edges:
-                        self.edges.remove( edge )
-
-                    self.addEdge(edge)
-                else:
-                    self.removeEdge(edge)
+                self.removeEdge(edge)
 
     def containsVertex( self, v ):
         return v in self.vertices.keys()
@@ -45,21 +31,21 @@ class Graph:
     def getVertexData( self, v ):
         return self.vertices[v]
 
-    def getNeighbors( self, v, directed ):
+    def getNeighbors( self, v ):
         neighbors = {}
 
         for edge in self.edges:
             if edge.v1 == v:
                 neighbors[edge.v2] = edge.cost
-            elif not directed and edge.v2 == v:
+            elif edge.v2 == v:
                 neighbors[edge.v1] = edge.cost
 
         return neighbors
 
-    def getEdgeCost( self, v1, v2, directed ):
+    def getEdgeCost( self, v1, v2 ):
         for edge in self.edges:
             if    ( edge.v1 == v1 and edge.v2 == v2 ) \
-               or ( not directed and edge.v1 == v2 and edge.v2 == v1 ):
+               or ( edge.v1 == v2 and edge.v2 == v1 ):
                 return edge.cost
 
         return None
@@ -107,13 +93,3 @@ class Edge:
 
     def __str__( self ):
         return '([' + str( self.cost ) + '] ' + str( self.v1 ) + ', ' + str( self.v2 ) + ')'
-
-class DirectedEdge( Edge ):
-    def __eq__( self, other ):
-        if self.v1 != other.v1:
-            return False
-
-        if self.v2 != other.v2:
-            return False
-
-        return True
