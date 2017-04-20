@@ -43,6 +43,8 @@ class RoutingTable:
 
         for c in range( 0, len( self.table ) ):
             if not any( self.table[c] ):
+                self.coordinates[c] = None
+                self.hops[c]        = 0
                 continue
 
             col = self.table[c].index( min( x for x in self.table[c] if x is not None ) )

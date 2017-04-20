@@ -254,7 +254,12 @@ def update_network( network, events ):
         r2   = e.router2
         cost = e.cost
 
+        if cost < 0:
+            cost = None
+
+        print( '{}: to {} via {} -> {}'.format( r1, r2, r2, cost ) )
         network.vertices[r1].setCostFromEvent( r2, r2, cost )
+        print( '{}: to {} via {} -> {}'.format( r2, r1, r1, cost ) )
         network.vertices[r2].setCostFromEvent( r1, r1, cost )
 
         updates[r1] = True
@@ -271,13 +276,15 @@ def update_network( network, events ):
             neighbor_r1_cost = network.getEdgeCost( neighbor, r1 )
 
             if neighbor_r2_cost is not None:
-                print( '{}: to {} via {} -> {}'.format( neighbor, r1, r2, cost + neighbor_r2_cost ) )
-                network.vertices[neighbor].setCostFromEvent( r1, r2, cost + neighbor_r2_cost )
+                new_cost = cost + neighbor_r2_cost if cost is not None else None
+                print( '{}: to {} via {} -> {}'.format( neighbor, r1, r2, new_cost ) )
+                network.vertices[neighbor].setCostFromEvent( r1, r2, new_cost )
                 updates[neighbor] = True
 
             if neighbor_r1_cost is not None:
-                print( '{}: to {} via {} -> {}'.format( neighbor, r2, r1, cost + neighbor_r1_cost ) )
-                network.vertices[neighbor].setCostFromEvent( r2, r1, cost + neighbor_r1_cost )
+                new_cost = cost + neighbor_r1_cost if cost is not None else None
+                print( '{}: to {} via {} -> {}'.format( neighbor, r2, r1, new_cost ) )
+                network.vertices[neighbor].setCostFromEvent( r2, r1, new_cost )
                 updates[neighbor] = True
 
         for neighbor in r2_neighbors.keys():
@@ -288,14 +295,21 @@ def update_network( network, events ):
             neighbor_r1_cost = network.getEdgeCost( neighbor, r1 )
 
             if neighbor_r2_cost is not None:
-                print( '{}: to {} via {} -> {}'.format( neighbor, r1, r2, cost + neighbor_r2_cost ) )
-                network.vertices[neighbor].setCostFromEvent( r1, r2, cost + neighbor_r2_cost )
+                new_cost = cost + neighbor_r2_cost if cost is not None else None
+                print( '{}: to {} via {} -> {}'.format( neighbor, r1, r2, new_cost ) )
+                network.vertices[neighbor].setCostFromEvent( r1, r2, new_cost )
                 updates[neighbor] = True
 
             if neighbor_r1_cost is not None:
-                print( '{}: to {} via {} -> {}'.format( neighbor, r2, r1, cost + neighbor_r1_cost ) )
-                network.vertices[neighbor].setCostFromEvent( r2, r1, cost + neighbor_r1_cost )
+                new_cost = cost + neighbor_r1_cost if cost is not None else None
+                print( '{}: to {} via {} -> {}'.format( neighbor, r2, r1, new_cost ) )
+                network.vertices[neighbor].setCostFromEvent( r2, r1, new_cost )
                 updates[neighbor] = True
+
+        if cost is None:
+            for vertex in network.vertices:
+                if updates[vertex]:
+                    network.vertices[vertex].updateCoordinates()
 
     print( '\n' )
     print_network( network )

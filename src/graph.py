@@ -74,7 +74,7 @@ class Edge:
     def __hash__( self ):
         hashCode = 1
         hashCode = 31 * hash( self.v1 )
-        hashCode = 31 * hash( self.v2 )
+        hashCode = hashCode + ( 31 * hash( self.v2 ) )
         return hashCode
 
     def __eq__( self, other ):
