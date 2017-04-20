@@ -245,7 +245,7 @@ def iter_split_horizon_poison_reverse( network ):
     return changed
 
 def update_network( network, events ):
-    global updates
+    global num_routers, updates
 
     network.updateGraph( events )
 
@@ -257,10 +257,15 @@ def update_network( network, events ):
         if cost < 0:
             cost = None
 
-        print( '{}: to {} via {} -> {}'.format( r1, r2, r2, cost ) )
-        network.vertices[r1].setCostFromEvent( r2, r2, cost )
-        print( '{}: to {} via {} -> {}'.format( r2, r1, r1, cost ) )
-        network.vertices[r2].setCostFromEvent( r1, r1, cost )
+        if cost is None:
+            for i in range( 1, num_routers + 1 ):
+                print( '{}: to {} via {} -> {}'.format( r1, i, r2, cost ) )
+                network.vertices[r1].setCostFromEvent( i, r2, None )
+                print( '{}: to {} via {} -> {}'.format( r2, i, r1, cost ) )
+                network.vertices[r2].setCostFromEvent( i, r1, None )
+        else:
+            network.vertices[r1].setCostFromEvent( r2, r2, cost )
+            network.vertices[r2].setCostFromEvent( r1, r1, cost )
 
         updates[r1] = True
         updates[r2] = True
@@ -306,11 +311,6 @@ def update_network( network, events ):
                 network.vertices[neighbor].setCostFromEvent( r2, r1, new_cost )
                 updates[neighbor] = True
 
-        if cost is None:
-            for vertex in network.vertices:
-                if updates[vertex]:
-                    network.vertices[vertex].updateCoordinates()
-
     print( '\n' )
     print_network( network )
 
@@ -348,14 +348,15 @@ def dv_run( network, events, verbose, algoType ):
         for vertex in network.vertices:
             updates[vertex] = network.vertices[vertex].updateCoordinates()
 
+        table = tableize( network )
+
         if verbose:
-            table = tableize( network )
             pretty_print( table )
             print( '\n' )
             print_network( network )
 
-            if is_count_to_infinity( table ):
-                sys.exit( 'Encountered a count-to-infinity instability.' )
+        if is_count_to_infinity( table ):
+            sys.exit( 'Encountered a count-to-infinity instability.' )
 
         round_num += 1
 
