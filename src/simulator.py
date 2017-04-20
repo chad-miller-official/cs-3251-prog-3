@@ -144,14 +144,9 @@ def iter_basic( network ):
 
                 if to_router == vertex:
                     continue
-
-                for via in range( 0, len( network.vertices[vertex].table[to] ) ):
-                    via_router = via + 1
-
-                    if via_router == vertex:
-                        continue
-
-                    existing_cost = cloned[vertex].getCost( to_router, via_router )
+                if network.vertices[vertex].coordinates[to_router - 1] is not None:
+                    via = network.vertices[vertex].coordinates[to_router - 1][1]
+                    existing_cost = cloned[vertex].getCost( to_router, via)
 
                     if existing_cost is not None:
                         new_cost  = existing_cost + network.vertices[neighbor].getCost( vertex, vertex )
@@ -187,14 +182,9 @@ def iter_split_horizon( network ):
                 if to_router == vertex:
                     continue
 
-                for via in range( 0, len( network.vertices[vertex].table[to] ) ):
-                    via_router = via + 1
-
-                    if via_router == vertex:
-                        continue
-
-                    existing_cost = cloned[vertex].getCost( to_router, via_router )
-
+                if network.vertices[vertex].coordinates[to_router - 1] is not None:
+                    via = network.vertices[vertex].coordinates[to_router - 1][1]
+                    existing_cost = cloned[vertex].getCost( to_router, via )
                     if existing_cost is not None:
                         additional_cost = network.vertices[neighbor].getCost( vertex, vertex )
 
@@ -232,19 +222,15 @@ def iter_split_horizon_poison_reverse( network ):
                 if to_router == vertex:
                     continue
 
-                for via in range( 0, len( network.vertices[vertex].table[to] ) ):
-                    via_router = via + 1
-
-                    if via_router == vertex:
-                        continue
-
-                    existing_cost = cloned[vertex].getCost( to_router, via_router )
+                if network.vertices[vertex].coordinates[to_router - 1] is not None:
+                    via = network.vertices[vertex].coordinates[to_router - 1][1]
+                    existing_cost = cloned[vertex].getCost( to_router, via )
 
                     if existing_cost is not None:
                         additional_cost = network.vertices[neighbor].getCost( vertex, vertex )
 
                         if network.vertices[vertex].hops[to] != neighbor:
-                            new_cost = existing_cost + additional_cost
+                            new_cost  = existing_cost + additional_cost
                         else:
                             new_cost = math.inf
 
@@ -254,7 +240,7 @@ def iter_split_horizon_poison_reverse( network ):
                             updates[neighbor] = True
 
                         if not changed and didChange:
-                            changed = True
+                            changed =  True
 
     return changed
 

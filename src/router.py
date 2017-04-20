@@ -15,6 +15,7 @@ class RoutingTable:
         self.table[to - 1][via - 1] = cost
 
     def setCost( self, to, via, cost ):
+        #print ('From vertex {} telling {} about path to vertex {} with cost: {}'.format(via, self.router, to, cost) )
         if to == self.router or via == self.router:
             return False
 
