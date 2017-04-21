@@ -271,10 +271,12 @@ def update_network( network, events ):
 
         if cost is None:
             for i in range( 1, num_routers + 1 ):
-                print( '{}: to {} via {} -> {}'.format( r1, i, r2, cost ) )
+                # print( '{}: to {} via {} -> {}'.format( r1, i, r2, cost ) )
                 network.vertices[r1].setCostFromEvent( i, r2, None )
-                print( '{}: to {} via {} -> {}'.format( r2, i, r1, cost ) )
+                # print( '{}: to {} via {} -> {}'.format( r2, i, r1, cost ) )
                 network.vertices[r2].setCostFromEvent( i, r1, None )
+                network.vertices[r1].setNumHops( i, r2, -1 )
+                network.vertices[r2].setNumHops( i, r1, -1 )
         else:
             network.vertices[r1].setCostFromEvent( r2, r2, cost )
             network.vertices[r2].setCostFromEvent( r1, r1, cost )
