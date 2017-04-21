@@ -14,7 +14,6 @@ class Graph:
 
     def updateGraph(self, e):
         for event in e:
-            print( 'EVENT OCCURRED: ' + str( event ) )
             edge = Edge(event.router1, event.router2, event.cost)
 
             if event.cost >= 0:

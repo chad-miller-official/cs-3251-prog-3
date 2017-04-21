@@ -4,9 +4,16 @@ from copy import deepcopy
 class RoutingTable:
     def __init__( self, numRouters, router ):
         self.table       = [ [ None for i in range( numRouters ) ] for j in range( numRouters ) ]
+        self.numHops     = [ [ 0 for i in range( numRouters ) ] for j in range( numRouters ) ]
         self.coordinates = [ None for i in range( numRouters ) ]
         self.router      = router
         self.hops        = [ None for i in range( numRouters ) ]
+
+    def setNumHops( self, to, via, hops ):
+        self.numHops[to - 1][via - 1] = hops
+
+    def getNumHops( self, to, via ):
+        return self.numHops[to - 1][via - 1]
 
     def getCost( self, to, via ):
         return self.table[to - 1][via - 1]
@@ -29,9 +36,9 @@ class RoutingTable:
 
     def setHop( self, to, via ):
         if to == self.router or via == self.router:
-            self.hops[to-1] = 0
+            self.hops[to-1] = via
         elif to == via:
-            self.hops[to-1] = 0
+            self.hops[to-1] = via
         else:
             self.hops[to-1] = via
 

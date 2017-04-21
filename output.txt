@@ -1,0 +1,27 @@
+Variation 1: Basic algorithm
+
+1  1,0    2,1    3,1
+2  1,1    2,0    3,1
+3  1,1    2,1    3,0
+
+Convergence Delay: 1 round
+
+*********************
+
+Variation 2: Algorithm with split horizon
+
+1  1,0    2,1    3,1
+2  1,1    2,0    3,1
+3  1,1    2,1    3,0
+
+Convergence Delay: 1 round
+
+*********************
+
+Variation 3: Algorithm with split horizon and poison reverse
+
+1  1,0    2,1    3,1
+2  1,1    2,0    3,1
+3  1,1    2,1    3,0
+
+Convergence Delay: 1 round
