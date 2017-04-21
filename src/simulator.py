@@ -325,7 +325,7 @@ def update_network( network, events ):
                 network.vertices[neighbor].setCostFromEvent( r2, r1, new_cost )
                 updates[neighbor] = True
 
-def dv_run( network, events, verbose, algoType, outfile ):
+def dv_run( network, events, verbose, algoType ):
     global updates
 
     changed         = True
@@ -383,7 +383,23 @@ def dv_run( network, events, verbose, algoType, outfile ):
     str_buf += '\nConvergence Delay: {} round{}'.format( final_convergence_delay, 's' if final_convergence_delay != 1 else '' )
     # print( str_buf )
 
+    outfile_name = 'output-'
+
+    if algoType == BASIC:
+        outfile_name += 'basic'
+    elif algoType == SPLIT_HORIZON:
+        outfile_name += 'split-horizon'
+    elif algoType == SPLIT_HORIZON_POISON_REVERSE:
+        outfile_name += 'split-horizon-with-poison-reverse'
+
+    if verbose:
+        outfile_name += '-detailed'
+
+    outfile_name += '.txt'
+
+    outfile = open( outfile_name, 'w' )
     outfile.write( str_buf )
+    outfile.close
 
 def main( argv ):
     global updates
@@ -397,29 +413,17 @@ def main( argv ):
 
     updates = {}
 
-    outfile_name = 'output-detailed.txt' if verbose else 'output.txt'
-    outfile      = open( outfile_name, 'w' )
-
-    outfile.write( 'Variation 1: Basic algorithm\n\n' )
     topology           = file_to_undirected_graph( topology_filename )
     topological_events = file_to_topological_events( topological_events_filename )
-    dv_run( topology, topological_events, verbose, BASIC, outfile )
+    dv_run( topology, topological_events, verbose, BASIC )
 
-    outfile.write( '\n\n*********************\n\n' )
-
-    outfile.write( 'Variation 2: Algorithm with split horizon\n\n' )
     topology           = file_to_undirected_graph( topology_filename )
     topological_events = file_to_topological_events( topological_events_filename )
-    dv_run( topology, topological_events, verbose, SPLIT_HORIZON, outfile )
+    dv_run( topology, topological_events, verbose, SPLIT_HORIZON )
 
-    outfile.write( '\n\n*********************\n\n' )
-
-    outfile.write( 'Variation 3: Algorithm with split horizon and poison reverse\n\n' )
     topology           = file_to_undirected_graph( topology_filename )
     topological_events = file_to_topological_events( topological_events_filename )
-    dv_run( topology, topological_events, verbose, SPLIT_HORIZON_POISON_REVERSE, outfile )
-
-    outfile.close()
+    dv_run( topology, topological_events, verbose, SPLIT_HORIZON_POISON_REVERSE )
 
 if __name__ == "__main__":
     main( sys.argv[1:] )
