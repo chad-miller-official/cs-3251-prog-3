@@ -1,6 +1,12 @@
 import math
 from copy import deepcopy
 
+"""
+Class to represent a router's routing table and other stored values.
+Specifically, it contains a routing table, a table of number of hops for certain
+paths, pinters to the least cost values in the table, itself's label, and the
+next hops for the lowest cost paths.
+"""
 class RoutingTable:
     def __init__( self, numRouters, router ):
         self.table       = [ [ None for i in range( numRouters ) ] for j in range( numRouters ) ]
@@ -9,23 +15,30 @@ class RoutingTable:
         self.router      = router
         self.hops        = [ None for i in range( numRouters ) ]
 
+    #sets the number of hops it takes to get to a destination
     def setNumHops( self, to, via, hops ):
         self.numHops[to - 1][via - 1] = hops
 
+    #returns the number of hops to a destination
     def getNumHops( self, to, via ):
         return self.numHops[to - 1][via - 1]
 
+    #returns the cost of a certain path in the routing table
     def getCost( self, to, via ):
         return self.table[to - 1][via - 1]
 
+    #sets the cost in the routing table based on an event
     def setCostFromEvent( self, to, via, cost ):
         self.table[to - 1][via - 1] = cost
 
+    #sets cost in the routing table to given value
     def setCost( self, to, via, cost ):
         #print ('From vertex {} telling {} about path to vertex {} with cost: {}'.format(via, self.router, to, cost) )
         if to == self.router or via == self.router:
             return False
 
+        #set if non-existent, a lower cost, or it is an override from previous
+        #node of least cost
         if    self.table[to - 1][via - 1] is None \
            or self.table[to - 1][via - 1] >= cost \
            or self.coordinates[to - 1] == ( to, via ):
@@ -34,6 +47,7 @@ class RoutingTable:
 
         return False
 
+    #sets the next hop for a given path
     def setHop( self, to, via ):
         if to == self.router or via == self.router:
             self.hops[to-1] = via
@@ -42,9 +56,11 @@ class RoutingTable:
         else:
             self.hops[to-1] = via
 
+    #sets the coordinates of the least cost path in a row of the routing table
     def setCoordinate(self, index1, index2):
         self.coordinates[index1 - 1] = (index1, index2)
 
+    #updates all coordinates for least cost paths in each row of the routing table
     def updateCoordinates( self ):
         ret = False
 
@@ -63,6 +79,7 @@ class RoutingTable:
 
         return ret
 
+    #clones this router
     def clone( self ):
         return deepcopy( self )
 
