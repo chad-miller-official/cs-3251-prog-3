@@ -101,12 +101,12 @@ def tableize( network, on_round_0=False ):
     return ret_table
 
 """
-Returns if the table has reached a count-to-infinity problem, based on cost size
+Returns if the table has reached a count-to-infinity problem, based on hop count
 """
 def is_count_to_infinity( table ):
     for i in table:
         for j in i:
-            if j[1] >= 100 and j[1] != math.inf:
+            if j[2] >= 100:
                 return True
 
     return False
